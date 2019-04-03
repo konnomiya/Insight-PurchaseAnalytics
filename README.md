@@ -58,7 +58,7 @@ Make sure there are `./input` and `./output` directory in current directory. Pay
 # Just For Fun: The SQL Solution
 Suppose table `order`contains `order_products.csv`'s data and table `product` contains `products.csv`'s data, each table has auto increment index as the first column.
 ```
-Select department_id, Count(product_id), sum(reordered=0), Round( sum(reordered=0)/Count(product_id), 2) As Percentage
+Select department_id, Count(product_id), sum(reordered=0), Round(sum(reordered=0)/Count(product_id), 2) As Percentage
 From (Select p.department_id, o.order_id, o.product_id, o.reordered
 From insight.order o, product p
 Where o.product_id = p.product_id) As tmp
