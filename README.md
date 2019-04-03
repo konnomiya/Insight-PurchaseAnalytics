@@ -9,6 +9,8 @@ This project is developed in Python. As Instacart has published a [dataset](http
 2. [Approach]( README.md#approach )
     1. [Special Case]( README.md#special-case )
 3. [Run instructions]( README.md#run-instructions)
+4. [Just For Fun: The SQL Solution]( README.md#just-for-fun-the-sql-solution)
+5. [Acknowledgement]( README.md#acknowledgement)
 
 
 # Problem
@@ -31,7 +33,7 @@ Requirements:
 - `percentage` should be rounded to the second decimal
 
 ## Heuristics
-The first thing came up my mind is "why can't I use SQL?" (lol). Imagine that order_products.csv and products.csv are two tables in database. Then we can observe that if there is a table containing four columns: order_id, product_id, reordered, department_id, it could be convenient for us to perform further calculation. Also, we can discover that the number of the record (product_id, department_id) is the number of orders for each department, while the number of the record (product_id, reordered, department_id) is the number of the first orders.  
+The first thing came up my mind is "why can't I use SQL?" (lol). Imagine that order_products.csv and products.csv are two tables in database. Then we can observe that if there is a table containing four columns: order_id, product_id, reordered, department_id, it could be convenient for us to perform further calculation. Also, we can discover that the number of the record (product_id, department_id) is the number of orders for each department, while the number of the record (product_id, reordered=0, department_id) is the number of the first orders.  
 
 Then I first think about generating a dict that contains these 4 data using two loops in python. However, you must find that this cost is high and it is extremely slow when dealing with larger input files. What's more, as the above observation, order_id is not necessary.     
 
@@ -54,6 +56,14 @@ You can have a try using the files in `tests/my_own_test_1` directory.
 Make sure there are `./input` and `./output` directory in current directory. Pay attention to the order of the two input files, the `./input/order_products.csv` should be the first. Then run `./run.sh` in terminal.
 
 # Just For Fun: The SQL Solution
-
+Suppose table `order`contains `order_products.csv`'s data and table `product` contains `products.csv`'s data, each table has auto increment index as the first column.
+```
+Select department_id, Count(product_id), sum(reordered=0), Round( sum(reordered=0)/Count(product_id), 2) As Percentage
+From (Select p.department_id, o.order_id, o.product_id, o.reordered
+From insight.order o, product p
+Where o.product_id = p.product_id) As tmp
+Group by (department_id)
+Order by department_id Asc;
+```
 # Acknowledgement
-Thanks to the Insight fellowship team, this small project is like a pretty interesting critical thinking game for me.
+Thanks to the Insight fellowship team, I really enjoy working on this small project.
