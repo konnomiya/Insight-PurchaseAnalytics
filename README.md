@@ -38,77 +38,21 @@ The first thing came up my mind is "why can't I use SQL?" (lol). Imagine that or
 
 Then I first think about generating a dict that contains these 4 data using two loops in python. However, you must find that this cost is high and it is extremely slow when dealing with larger input files. What's more, as the above observation, order_id is not necessary.     
 
-**The key point is that we must find the department_id for each product_id in order_products.csv.** With this in mind, the following steps come up more clearly. With products.csv we generate a dict: {key: product_id, value: department_id}, which can be reference for the embedded dict containing the desired values: {key:department_id, value: {key: number_of_orders, value:int; key:number_of_first_orders, value:int}}. These steps are similar to the **Where** clause and **Group by** clause in SQL(e.g. "Where a.product_id = b.product_id", "Group by department_id")
+**The key point is that we must find the department_id for each product_id in order_products.csv.** With this in mind, the following steps come up more clearly. With products.csv we generate a dict: {key: product_id, value: department_id}, which can be reference for the embedded dict containing the desired values: {key:department_id, value: {key: number_of_orders, value:int; key:number_of_first_orders, value:int}}. These steps are similar to the **Where** clause and **Group by** clause in SQL(e.g. `Where a.product_id = b.product_id`, `Group by department_id`).
 
 # Approach
-`preprocess.py`: process raw data, find correct fields, clean data. Write records with `'CERTIFIED'` status into processed data:
-1. `STATE`: 'xx' format. Inferred from zip code if not valid;
-2. `SOC_CODE`: 'xx-xxxx.xx' format.
-3. `SOC_NAME`: clean as a string
+`purchase_analytics.py`: All the methods have been packaged in the `PurchaseAnalytics` Class: process two input files, perform calculations, generate output file. 
 
-`data_analyze.py`: analyze processed data:
-1. Infer occupation name from `SOC_CODE` and `SOC_NAME`;
-2. Use `state_counter` and `occupation_counter` hash tables to record frequency of states and occupations;
-3. Sort based on counts and print out top 10 states and occupations.
-
-## Data information
-I summarized the field names which are need for this problem for different years.
-
-| Year | Status      | State                   | Occupation name   | SOC code          |
-|:----:|-------------|-------------------------|-------------------|-------------------|
-| 2014 | STATUS      | LCA_CASE_WORKLOC1_STATE | LCA_CASE_SOC_NAME | LCA_CASE_SOC_CODE |
-| 2015 | CASE_STATUS | WORKSITE_STATE          | SOC_NAME          | SOC_CODE          |
-| 2016 | CASE_STATUS | WORKSITE_STATE          | SOC_NAME          | SOC_CODE          |
-
-So I am using following criteria to select the correct fields
+## Special Case
+It is possible that when products.csv is missing some product_id so that these product_id can't be related to its department_id. In my code it will generate the report.csv and calculates the unmissing values while showing the error messages for the missing product_id in terminal:
 ```
-Status: 'STATUS' in name
-State: 'WORK' in name and 'STATE' in name
-Occupation name: 'SOC' in name and 'NAME' in name
-SOC code: 'SOC' in name and 'CODE' in name
+chenkechengdeMacBook-Pro:insight_oa kc$ ./run.sh
+Cannot be found in products.csv - product_id: "45918"
+Cannot be found in products.csv - product_id: "46667"
+Cannot be found in products.csv - product_id: "46842"
 ```
-Since in 2014 data, there is another field name `LCA_CASE_WORKLOC2_STATE`, I only take the first time. 
-The semicolon delimiter challenge can be solve using [a function](https://github.com/amcw7777/h1b-counter/blob/master/src/h1b_tools.py#L60-L81). Or using [regular expression](https://github.com/amcw7777/h1b-counter/blob/master/src/preprocess.py#L44).
-
-## Data preprocessing 
-### STATUS
-Valid values include “Certified”, “Certified-Withdrawn”, “Denied”, and “Withdrawn". In the given data, most information are valid. In the 2014 data, one case with status as 'REJECTED' and another one as 'INVALIDATED'. These are the only two special cases for the three years data. In this problem, only cases with "Certified" status are counted. So the special cases will not affect the result.
-
-### STATE
-Two letters short for one of the states. In some cases, the name of the states are incorrect and the name cannot be found in a state dictionary. For these cases, [a function](https://github.com/amcw7777/h1b-counter/blob/master/src/preprocess.py#L112-L127) uses Zip code to correct the states. And check all the special cases manually. ** If the state name is accidentally input as another state, my program does not work. **
-
-### 'VOTING' to correct OCCUPATION
-The occupation name in raw data is not very clean. 
-1. Missing occupation name;
-2. Different format: the occupation name ending with '*' (means modified in SOC2000) or '"'. Or 'R&D' and 'R & D' and 'R and D' which present same name;
-3. Typos: like 'ANALYST' -> 'ANALYSTS'; 'COMPUTER' -> 'COMPTUER';
-4. Missing part of information: like 'COMPUTER OCCUPATIONS, ALL' -> 'COMPUTER OCCUPATIONS, ALL OTHER'
-
-We can use SOC code to help correct occupation name, but SOC code also have problem:
-1. Missing SOC code;
-2. Different format: xx/xxxx.xx or xx-xxxx-xx or xxxxxxxx;
-3. Typos: missing number of incorrect SOC code;
-4. Same SOC code but different occupation name.
-
-To solve format problem, I used two function [`clean_soc_code`](https://github.com/amcw7777/h1b-counter/blob/master/src/h1b_tools.py#L18-L39) to transfer all SOC code as format 'XX-XXXX.XX'. If the SOC code is 6 digit or ends with '.99', the function replace the end with '.00'. 
-
-The [`clean_soc_name`](https://github.com/amcw7777/h1b-counter/blob/master/src/h1b_tools.py#L41-L59) function fix the occupation as all capital letter and remove extra space and quotas. 
-
-The correct occupation name is the soc_name with **highest frequency** of one soc_code.
-For example, in the table below, the correct name corresponding to '13-1161.00' should be 'MARKET RESEARCH ANALYSTS AND MARKETING SPECIALISTS'. Others are missing information or typos.
-
-| SOC code   |  Occupation name                                   | Counting |
-|------------|----------------------------------------------------|----------|
-| 13-1161.00 | MARKET RESEARCH ANALYSTS AND MARKETING SPECIALISTS | 6978     |
-|            | MARKET RESEARCH ANALYSTS AND MARKETING             | 167      |
-|            | MARKET RESEARCH ANALYST AND MARKETING SPECIALISTS  | 2        |
-|            | MARKET RESEACH ANALYSTS AND MARKETING SPECIALISTS  | 1        | 
 
 
-## Data analysis
-The preprocessor reads raw data and writes two output files: `processed_xxx.csv` and `soc_map_xxx.csv`. The processed data is skimmed from raw data with fields as 'state', 'soc_code' and 'soc_name'. Only certified records are written into processed data. 
-
-The analysis code (H1BCounter) reads the processed data and SOC_map. In analysis code, the occupation name is inferred based on 'soc_code', 'soc_name' and the SOC_map. And two hash tables record the counting of each state/occupation. Then sort the two tables with counting decreasing and name alphabet. The first 10 or all (if the number of key is less than 10) records are written into `./output/top_10_occupations.txt` and `./output/top_10_states.txt`
 
 ## Performance and trade-offs
 
