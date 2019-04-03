@@ -29,10 +29,9 @@ The program must create 1 output file:
 * `report.csv`: fieldnames: department_id, number_of_orders, number_of_first_orders, percentage
 
 Requirements:
-1. Each line holds one record and each field on each line is separated by a semicolon (;).
-2. The records in the file must be sorted by __`NUMBER_CERTIFIED_APPLICATIONS`__, and in case of a tie, alphabetically by __`TOP_OCCUPATIONS`__ (__`TOP_STATES`__).
-3. There can be fewer than 10 lines in each file.
-4. Percentages also should be rounded off to 1 decimal place. For instance, 1.05% should be rounded to 1.1% and 1.04% should be rounded to 1.0%. Also, 1% should be represented by 1.0%
+- It is listed in ascending order by `department_id`
+- A `department_id` should be listed only if `number_of_orders` is greater than `0`
+- `percentage` should be rounded to the second decimal
 
 ## Challenges
 1. Even the data is separated by semicolon, not all the semicolons are delimiter. (For example, `aaa;"bbb;ccc";;ddd` should be read as `'aaa', 'bbb;ccc', '', 'ddd'`;
