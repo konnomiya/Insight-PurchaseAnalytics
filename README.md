@@ -33,10 +33,12 @@ Requirements:
 - A `department_id` should be listed only if `number_of_orders` is greater than `0`
 - `percentage` should be rounded to the second decimal
 
-## Challenges
-1. Even the data is separated by semicolon, not all the semicolons are delimiter. (For example, `aaa;"bbb;ccc";;ddd` should be read as `'aaa', 'bbb;ccc', '', 'ddd'`;
-2. Different field names in different years;
-3. Missing data or typo: it is the hardest part in the problem. The work states information are all good. But there are missing or typos in occupation name and SOC code data.
+## Heuristics
+The first thing came up my mind is "why can't I use SQL?" (lol). Imagine that order_products.csv and products.csv are two tables in database. Then we can observe that if there is a table containing four columns: order_id, product_id, reordered, department_id, it could be convenient for us to perform further calculation. Also, we can discover that the number of the record (product_id, department_id) is the number of orders for each department, while the number of the record (product_id, reordered, department_id) is the number of the first orders.  
+
+Then I first think about generating a dict that contains these 4 data using two loops in python. However, you must find that this cost is high and it is extremely slow when dealing with larger input files. What's more, as the above observation, order_id is not necessary.     
+
+**The key point is that we must find the department_id for each product_id in order_products.csv.** With this in mind, the following steps come up more clearly. With products.csv we generate a dict: {key: product_id, value: department_id}, which can be reference for the embedded dict containing the desired values: {key:department_id, value: {key: number_of_orders, value:int; key:number_of_first_orders, value:int}}. These steps are similar to the **Where** clause and **Group by** clause in SQL(e.g. "Where a.product_id = b.product_id", "Group by department_id")
 
 # Approach
 `preprocess.py`: process raw data, find correct fields, clean data. Write records with `'CERTIFIED'` status into processed data:
