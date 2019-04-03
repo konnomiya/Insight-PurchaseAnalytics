@@ -5,12 +5,9 @@ This project is developed in Python. As Instacart has published a [dataset](http
 1. [Problem](README.md#problem)
     1. [Input]( README.md#input )
     2. [Output]( README.md#output )
-    3. [Heuristics]( README.md#challenge )
+    3. [Heuristics]( README.md#heuristics )
 2. [Approach]( README.md#approach )
-    1. [Data information]( README.md#data-information )
-    2. [Data prerpocessing]( README.md#data-preprocessing )
-    3. [Data analysis]( README.md#data-analysis )
-    4. [Performance and trade-offs]( README.md#performance-and-trade-offs )
+    1. [Special Case]( README.md#special-case )
 3. [Run instructions]( README.md#run-instructions)
 
 
@@ -44,38 +41,19 @@ Then I first think about generating a dict that contains these 4 data using two 
 `purchase_analytics.py`: All the methods have been packaged in the `PurchaseAnalytics` Class: process two input files, perform calculations, generate output file. 
 
 ## Special Case
-It is possible that when products.csv is missing some product_id so that these product_id can't be related to its department_id. In my code it will generate the report.csv and calculates the unmissing values while showing the error messages for the missing product_id in terminal:
+It is possible that when products.csv is missing some product_id so that these product_id can't be related to its department_id. In my solution it will generate the report.csv and calculates the unmissing values while showing the error messages for the missing product_id in terminal:
 ```
 chenkechengdeMacBook-Pro:insight_oa kc$ ./run.sh
 Cannot be found in products.csv - product_id: "45918"
 Cannot be found in products.csv - product_id: "46667"
 Cannot be found in products.csv - product_id: "46842"
 ```
+You can have a try using the files in `tests/my_own_test_1` directory.
 
+# Run Instructions
+Make sure there are `./input` and `./output` directory in current directory. Pay attention to the order of the two input files, the `./input/order_products.csv` should be the first. Then run `./run.sh` in terminal.
 
-
-## Performance and trade-offs
-
-### Disk complexity
-The program pre-processes data and save the processed data to disk. The processed data cost about 1/10 space of the raw data. The soc_map file is much small than the processed data. 
-The advantages are:
-1. Save time and memory: to infer the occupation name, using the processed data can help speed up x10. 
-2. For further distributed analysis: both the soc_code_map and preprocessed data can be extended in distributed system safely.
-
-### Memory complexity
-The input file is read and processed line-by-line. So the largest memory consuming is the hash tables. There are about ~1k occupations, the memory cost is ~100k. And this memory cost will not increase dramatically with the statistic of input.
-
-### Time complexity
-In preprocessor, the most time consuming part is to split a line with semicolon. So the total time is O(n), n denotes the number of letters in the input file. Other operations are based on hash table with O(1) time. 
-
-In analysis code, the time to loop all events is O(m), here m denotes the number of letters, which is about 1/10 of n. 
-
-And sorting time is O(klogk), k is the number of states/occupation. Since k ~ 1000, no need to use heap (with O(klog10) time complexity).
-
-# Run instructions
-Make sure there are 1)`./output` directory and `./input/h1b_input.csv` in current directory. 
-
-`sh run.sh`
+# Just For Fun: The SQL Solution
 
 # Acknowledgement
-Thanks to the Insight fellowship team, this small project gave me a meaningful and happy weekend.
+Thanks to the Insight fellowship team, this small project is like a pretty interesting critical thinking game for me.
