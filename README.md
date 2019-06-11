@@ -66,4 +66,4 @@ Group by (department_id)
 Order by department_id Asc;
 ```
 # Acknowledgement
-Thanks to the Insight fellowship team, I really enjoy working on this small project.
+Thanks to the Insight fellowship team, I really enjoy working on this small project. -- Kecheng
